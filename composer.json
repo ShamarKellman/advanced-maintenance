@@ -1,0 +1,27 @@
+{
+    "name": "shamarkellman/advanced-maintenance",
+    "type": "laravel-package",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shamar Kellman",
+            "email": "shamarkellman@hotmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Shamarkellman\\AdvancedMaintenance\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=5.6",
+        "laravel/framework": ">=5.4.*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Shamarkellman\\AdvancedMaintenance\\AdvancedMaintenanceServiceProvider"
+            ]
+        }
+    }
+}
