@@ -15,26 +15,28 @@ Requirements
 Installation
 ============
 
-    composer require shamarkellman/advanced-maintenance
+ ```bash 
+ composer require shamarkellman/advanced-maintenance
+ ```
 
-Add the service provider in your config/app.php
+Add the service provider in your config/app.php (Laravel 5.4) 
 
-Service Provider
-
-    Shamarkellman\AdvancedMaintenance\Middleware\CheckForMaintenanceMiddleware,
+```php
+Shamarkellman\AdvancedMaintenance\AdvancedMaintenanceServiceProvider::class,
+```    
 
 Publish Config and views
 
-    php artisan publish --force
+    php artisan vendor:publish --force --provider="Shamarkellman\AdvancedMaintenance\AdvancedMaintenanceServiceProvider"
 
 Usage
 =====
 
-Add urls to *advanced_maintenance.php* config file
+Add urls to *advanced-maintenance.php* config file
 Example
 
 ```php
- 'exclude_routes' => [
+ 'excluded_routes' => [
     'admin',
     'admin/*'
   ]

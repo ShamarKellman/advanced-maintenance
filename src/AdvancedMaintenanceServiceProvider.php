@@ -18,8 +18,13 @@ class AdvancedMaintenanceServiceProvider extends ServiceProvider
             return  new CheckForMaintenanceMiddleware($app);
         });
 
-        $this->publishes([__DIR__.'/../views/503.blade.php' => resource_path('views/errors/503.blade.php')]);
-        $this->publishes([__DIR__.'/../config/advanced-maintenance.php' => config_path('advanced-maintenance.php')]);
+        $this->loadViewsFrom(__DIR__.'/views', 'advanced-maintenance');
+        $this->mergeConfigFrom(__DIR__ . '/config/advanced-maintenance.php', 'advanced-maintenance');
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([__DIR__ . '/views' => resource_path('views')]);
+            $this->publishes([__DIR__ . '/config/advanced-maintenance.php' => config_path('advanced-maintenance.php')]);
+        }
     }
 
     /**
@@ -29,8 +34,6 @@ class AdvancedMaintenanceServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->loadRoutesFrom(__DIR__.'/../routes.php');
 
-        $this->loadViewsFrom(__DIR__.'/views', 'advanced-maintenance');
     }
 }

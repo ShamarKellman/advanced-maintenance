@@ -5,23 +5,17 @@ namespace Shamarkellman\AdvancedMaintenance\Middleware;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Http\Exceptions\MaintenanceModeException;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as BaseVerifier;
+use Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode;
+use Illuminate\Routing\Route;
 
-class CheckForMaintenanceMiddleware extends BaseVerifier
+class CheckForMaintenanceMiddleware extends CheckForMaintenanceMode
 {
-    /**
-     * The names of the cookies that should not be encrypted.
-     *
-     * @var array
-     */
+
     protected $except = [];
 
-    /**
-     * The application implementation.
-     *
-     * @var \Illuminate\Contracts\Foundation\Application
-     */
-    protected $app;
+    protected $excludedNames = [];
+
+    protected $excludedIPs = [];
 
     /**
      * Create a new middleware instance.
@@ -31,8 +25,26 @@ class CheckForMaintenanceMiddleware extends BaseVerifier
      */
     public function __construct(Application $app)
     {
-        $this->app = $app;
-        $this->except = config('advanced-maintenance.exclude_routes');
+        $this->except = config('advanced-maintenance.excluded_routes');
+        $this->excludedNames = config('advanced-maintenance.excluded_route_names');
+        $this->excludedIPs = config('advanced-maintenance.excluded_ips');
+
+        parent::__construct($app);
+    }
+
+    protected function shouldPassThrough($request)
+    {
+        foreach ($this->except as $except) {
+            if ($except !== '/') {
+                $except = trim($except, '/');
+            }
+
+            if ($request->is($except)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -46,10 +58,27 @@ class CheckForMaintenanceMiddleware extends BaseVerifier
      */
     public function handle($request, Closure $next)
     {
-        //dd($this->except);
-        if ($this->app->isDownForMaintenance() &&  !$this->inExceptArray($request)) {
-            $data = json_decode(file_get_contents($this->app->storagePath().'/framework/down'), true);
+        if ($this->app->isDownForMaintenance()) {
+            $response = $next($request);
 
+            if (in_array($request->ip(), $this->excludedIPs)) {
+                return $response;
+            }
+
+            $route = $request->route();
+
+            if ($route instanceof Route) {
+                if (in_array($route->getName(), $this->excludedNames)) {
+                    return $response;
+                }
+            }
+
+            if ($this->shouldPassThrough($request))
+            {
+                return $response;
+            }
+
+            $data = json_decode(file_get_contents($this->app->storagePath().'/framework/down'), true);
             throw new MaintenanceModeException($data['time'], $data['retry'], $data['message']);
         }
 
